@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { FiUpload, FiEdit2, FiTrash2 } from "react-icons/fi";
 import Heading from "../../components/Heading";
