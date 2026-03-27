@@ -101,7 +101,7 @@ const Subject = () => {
       };
       let response;
       if (isEditing) {
-        response = await axiosWrapper.patch(
+        response = await axiosWrapper.put(
           `/subject/${selectedSubjectId}`,
           data,
           {
@@ -218,9 +218,9 @@ const Subject = () => {
               No subjects found
             </div>
           ) : (
-            <table className="text-sm min-w-full bg-white">
+            <table className="min-w-full text-sm bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
               <thead>
-                <tr className="bg-blue-500 text-white">
+                <tr className="bg-[#fdf2f3] text-[#A11E2E]">
                   <th className="py-4 px-6 text-left font-semibold">Name</th>
                   <th className="py-4 px-6 text-left font-semibold">Code</th>
                   <th className="py-4 px-6 text-left font-semibold">Branch</th>
@@ -236,7 +236,7 @@ const Subject = () => {
               <tbody>
                 {subject &&
                   subject.map((item, index) => (
-                    <tr key={index} className="border-b hover:bg-blue-50">
+                    <tr key={index} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
                       <td className="py-4 px-6">{item.name}</td>
                       <td className="py-4 px-6">{item.code}</td>
                       <td className="py-4 px-6">{item.branch?.name}</td>
@@ -288,7 +288,7 @@ const Subject = () => {
                   type="text"
                   value={data.name}
                   onChange={(e) => setData({ ...data, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 />
               </div>
@@ -301,7 +301,7 @@ const Subject = () => {
                   type="text"
                   value={data.code}
                   onChange={(e) => setData({ ...data, code: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 />
               </div>
@@ -313,7 +313,7 @@ const Subject = () => {
                 <select
                   value={data.branch}
                   onChange={(e) => setData({ ...data, branch: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 >
                   <option value="">Select Branch</option>
@@ -334,7 +334,7 @@ const Subject = () => {
                   onChange={(e) =>
                     setData({ ...data, semester: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 >
                   <option value="">Select Semester</option>
@@ -356,7 +356,7 @@ const Subject = () => {
                   onChange={(e) =>
                     setData({ ...data, credits: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 />
               </div>

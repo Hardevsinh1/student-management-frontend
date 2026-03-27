@@ -9,7 +9,9 @@ import DeleteConfirm from "../../components/DeleteConfirm";
 import CustomButton from "../../components/CustomButton";
 import { MdLink } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
+import { useSelector } from "react-redux";
 const Material = () => {
+  const currentUserId = useSelector((state) => state.userData?._id);
   const [materials, setMaterials] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -24,6 +26,7 @@ const Material = () => {
     semester: "",
     branch: "",
     type: "notes",
+    isPublic: false,
   });
   const [file, setFile] = useState(null);
   const [filters, setFilters] = useState({
@@ -125,10 +128,10 @@ const Material = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type: inputType, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: inputType === "checkbox" ? checked : value,
     }));
   };
 
@@ -151,6 +154,7 @@ const Material = () => {
       semester: "",
       branch: "",
       type: "notes",
+      isPublic: false,
     });
     setFile(null);
     setEditingMaterial(null);
@@ -175,7 +179,13 @@ const Material = () => {
       if (editingMaterial) {
         await axiosWrapper.put(
           `/material/${editingMaterial._id}`,
-          formDataToSend
+          formDataToSend,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+          }
         );
         toast.success("Material updated successfully");
       } else {
@@ -207,6 +217,7 @@ const Material = () => {
       semester: material.semester,
       branch: material.branch._id,
       type: material.type,
+      isPublic: material.isPublic || false,
     });
     setShowModal(true);
   };
@@ -325,27 +336,30 @@ const Material = () => {
             No materials found
           </div>
         ) : (
-          <table className="text-sm min-w-full bg-white">
+          <table className="min-w-full text-sm bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
             <thead>
-              <tr className="bg-blue-500 text-white">
+              <tr className="bg-[#fdf2f3] text-[#A11E2E]">
                 <th className="py-4 px-6 text-left font-semibold">File</th>
                 <th className="py-4 px-6 text-left font-semibold">Title</th>
                 <th className="py-4 px-6 text-left font-semibold">Subject</th>
                 <th className="py-4 px-6 text-left font-semibold">Semester</th>
                 <th className="py-4 px-6 text-left font-semibold">Branch</th>
                 <th className="py-4 px-6 text-left font-semibold">Type</th>
+                <th className="py-4 px-6 text-left font-semibold">Public</th>
                 <th className="py-4 px-6 text-left font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {materials.map((material) => (
-                <tr key={material._id} className="border-b hover:bg-blue-50">
+                <tr key={material._id} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
                   <td className="py-4 px-6">
                     <CustomButton
                       variant="primary"
                       onClick={() => {
                         window.open(
-                          `${process.env.REACT_APP_MEDIA_LINK}/${material.file}`
+                          material.file?.startsWith("http")
+                            ? material.file
+                            : `${process.env.REACT_APP_MEDIA_LINK}/${material.file}`
                         );
                       }}
                     >
@@ -358,22 +372,35 @@ const Material = () => {
                   <td className="py-4 px-6">{material.branch.name}</td>
                   <td className="py-4 px-6 capitalize">{material.type}</td>
                   <td className="py-4 px-6">
+                    {material.isPublic ? (
+                      <span title="Publicly visible" className="text-green-600 font-semibold text-xs bg-green-50 px-2 py-1 rounded">🌐 Public</span>
+                    ) : (
+                      <span title="Private" className="text-gray-400 text-xs bg-gray-100 px-2 py-1 rounded">🔒 Private</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-6">
                     <div className="flex gap-4">
-                      <CustomButton
-                        variant="secondary"
-                        onClick={() => handleEdit(material)}
-                      >
-                        <FiEdit2 />
-                      </CustomButton>
-                      <CustomButton
-                        variant="danger"
-                        onClick={() => {
-                          setSelectedMaterialId(material._id);
-                          setIsDeleteConfirmOpen(true);
-                        }}
-                      >
-                        <FiTrash2 />
-                      </CustomButton>
+                      {currentUserId && material.faculty?._id === currentUserId ? (
+                        <>
+                          <CustomButton
+                            variant="secondary"
+                            onClick={() => handleEdit(material)}
+                          >
+                            <FiEdit2 />
+                          </CustomButton>
+                          <CustomButton
+                            variant="danger"
+                            onClick={() => {
+                              setSelectedMaterialId(material._id);
+                              setIsDeleteConfirmOpen(true);
+                            }}
+                          >
+                            <FiTrash2 />
+                          </CustomButton>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Not yours</span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -412,7 +439,7 @@ const Material = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 />
               </div>
@@ -426,7 +453,7 @@ const Material = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="">Select Subject</option>
@@ -446,7 +473,7 @@ const Material = () => {
                     name="branch"
                     value={formData.branch}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="">Select Branch</option>
@@ -466,7 +493,7 @@ const Material = () => {
                     name="semester"
                     value={formData.semester}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="">Select Semester</option>
@@ -486,7 +513,7 @@ const Material = () => {
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="notes">Notes</option>
@@ -524,6 +551,21 @@ const Material = () => {
                     </CustomButton>
                   )}
                 </div>
+              </div>
+
+              {/* isPublic toggle */}
+              <div className="flex items-center gap-3 mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <input
+                  type="checkbox"
+                  id="isPublic"
+                  name="isPublic"
+                  checked={formData.isPublic}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 accent-green-600"
+                />
+                <label htmlFor="isPublic" className="text-sm font-medium text-green-800 cursor-pointer select-none">
+                  🌐 Make this material publicly accessible (no login required)
+                </label>
               </div>
 
               <div className="flex justify-end space-x-4 mt-6">

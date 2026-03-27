@@ -66,8 +66,8 @@ const Home = () => {
       rounded-md
       transition-all duration-300 ease-in-out
       ${isSelected
-        ? "bg-[#A11E2E] text-white shadow-lg"
-        : "bg-white text-[#B5323B] hover:text-[#A11E2E] hover:bg-gray-100"
+        ? "bg-[#A11E2E] text-white shadow-md transform -translate-y-0.5"
+        : "bg-[#fdf2f3] text-[#A11E2E] hover:bg-[#A11E2E] hover:text-white hover:-translate-y-0.5"
       }
     `;
   };

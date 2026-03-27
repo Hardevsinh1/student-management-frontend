@@ -44,7 +44,17 @@ const Notice = () => {
         },
       });
       if (response.data.success) {
-        setNotices(response.data.data);
+        let fetchedNotices = response.data.data;
+        if (router.pathname === "/student") {
+          fetchedNotices = fetchedNotices.filter(
+            (n) => n.type === "student" || n.type === "both"
+          );
+        } else if (router.pathname === "/faculty") {
+          fetchedNotices = fetchedNotices.filter(
+            (n) => n.type === "faculty" || n.type === "both"
+          );
+        }
+        setNotices(fetchedNotices);
       } else {
         toast.error(response.data.message);
       }
@@ -271,7 +281,7 @@ const Notice = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 />
               </div>
 
@@ -285,7 +295,7 @@ const Notice = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 />
               </div>
 
@@ -299,7 +309,7 @@ const Notice = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, link: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 />
               </div>
 
@@ -312,7 +322,7 @@ const Notice = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, type: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 >
                   <option value="">Select Type</option>
                   <option value="student">Student</option>

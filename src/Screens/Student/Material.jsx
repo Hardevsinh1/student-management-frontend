@@ -141,7 +141,9 @@ const Material = () => {
                         variant="primary"
                         onClick={() =>
                           window.open(
-                            `${process.env.REACT_APP_MEDIA_LINK}/${material.file}`
+                            material.file?.startsWith("http")
+                              ? material.file
+                              : `${process.env.REACT_APP_MEDIA_LINK}/${material.file}`
                           )
                         }
                         className="text-gray-700 hover:text-[#A11E2E]"

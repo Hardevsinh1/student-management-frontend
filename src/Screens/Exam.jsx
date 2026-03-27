@@ -163,8 +163,8 @@ const Exam = () => {
         <Loading />
       ) : (
         <div className="mt-8 w-full overflow-x-auto">
-          <table className="min-w-full text-sm bg-white rounded-lg overflow-hidden">
-            <thead className="bg-blue-500 text-white">
+          <table className="min-w-full text-sm bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+            <thead className="bg-[#fdf2f3] text-[#A11E2E]">
               <tr>
                 <th className="py-4 px-6 text-left font-semibold">Exam Name</th>
                 <th className="py-4 px-6 text-left font-semibold">Date</th>
@@ -180,7 +180,7 @@ const Exam = () => {
             <tbody>
               {exams.length > 0 ? (
                 exams.map((item) => (
-                  <tr key={item._id} className="border-b hover:bg-blue-50">
+                  <tr key={item._id} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
                     <td className="py-4 px-6">{item.name}</td>
                     <td className="py-4 px-6">{new Date(item.date).toLocaleDateString()}</td>
                     <td className="py-4 px-6">{item.semester}</td>
@@ -189,15 +189,19 @@ const Exam = () => {
                     <td className="py-4 px-6">
                       {item.timetableLink ? (
                         <a
-                          href={`${process.env.REACT_APP_MEDIA_LINK}/${item.timetableLink}`}
+                          href={
+                            item.timetableLink?.startsWith("http")
+                              ? item.timetableLink
+                              : `${process.env.REACT_APP_MEDIA_LINK}/${item.timetableLink}`
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 underline"
+                          className="inline-block px-3 py-1.5 bg-[#fdf2f3] text-[#A11E2E] font-medium rounded-lg hover:bg-[#A11E2E] hover:text-white transition-all duration-200 text-xs shadow-sm"
                         >
-                          {item.timetableLink}
+                          View Timetable
                         </a>
                       ) : (
-                        "No File"
+                        <span className="text-gray-400 italic text-xs">No File</span>
                       )}
                     </td>
                     {loginType !== "Student" && (
@@ -242,7 +246,7 @@ const Exam = () => {
                   type="text"
                   value={data.name}
                   onChange={(e) => setData({ ...data, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   required
                 />
               </div>
@@ -254,7 +258,7 @@ const Exam = () => {
                     type="date"
                     value={data.date}
                     onChange={(e) => setData({ ...data, date: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   />
                 </div>
@@ -263,7 +267,7 @@ const Exam = () => {
                   <select
                     value={data.semester}
                     onChange={(e) => setData({ ...data, semester: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="">Select Semester</option>
@@ -282,7 +286,7 @@ const Exam = () => {
                   <select
                     value={data.examType}
                     onChange={(e) => setData({ ...data, examType: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   >
                     <option value="mid">Mid Term</option>
@@ -295,7 +299,7 @@ const Exam = () => {
                     type="number"
                     value={data.totalMarks}
                     onChange={(e) => setData({ ...data, totalMarks: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                     required
                   />
                 </div>

@@ -329,7 +329,7 @@ const Student = () => {
                   name="enrollmentNo"
                   value={searchParams.enrollmentNo}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   placeholder="Enter enrollment number"
                 />
               </div>
@@ -343,7 +343,7 @@ const Student = () => {
                   name="name"
                   value={searchParams.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                   placeholder="Enter student name"
                 />
               </div>
@@ -356,7 +356,7 @@ const Student = () => {
                   name="semester"
                   value={searchParams.semester}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 >
                   <option value="">Select Semester</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
@@ -375,7 +375,7 @@ const Student = () => {
                   name="branch"
                   value={searchParams.branch}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 >
                   <option value="">Select Branch</option>
                   {branches?.map((branch) => (
@@ -417,49 +417,53 @@ const Student = () => {
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Search Results</h2>
               <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-300">
+                <table className="min-w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
                   <thead>
-                    <tr className="bg-gray-100">
-                      <th className="px-6 py-3 border-b text-left">Profile</th>
-                      <th className="px-6 py-3 border-b text-left">Name</th>
-                      <th className="px-6 py-3 border-b text-left">E. No</th>
-                      <th className="px-6 py-3 border-b text-left">Semester</th>
-                      <th className="px-6 py-3 border-b text-left">Branch</th>
-                      <th className="px-6 py-3 border-b text-left">Email</th>
-                      <th className="px-6 py-3 border-b text-center">
+                    <tr className="bg-[#fdf2f3] text-[#A11E2E]">
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">Profile</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">Name</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">E. No</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">Semester</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">Branch</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-left font-semibold">Email</th>
+                      <th className="px-6 py-4 border-b border-gray-100 text-center font-semibold">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.map((student) => (
-                      <tr key={student._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 border-b">
+                      <tr key={student._id} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
+                        <td className="px-6 py-4">
                           <img
-                            src={`${process.env.REACT_APP_MEDIA_LINK}/${student.profile}`}
+                            src={
+                              student.profile?.startsWith("http")
+                                ? student.profile
+                                : `${process.env.REACT_APP_MEDIA_LINK}/${student.profile}`
+                            }
                             alt={`${student.firstName}'s profile`}
-                            className="w-12 h-12 object-cover rounded-full"
+                            className="w-12 h-12 object-cover rounded-full ring-2 ring-gray-100 shadow-sm"
                             onError={(e) => {
                               e.target.src =
                                 "https://images.unsplash.com/photo-1744315900478-fa44dc6a4e89?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
                             }}
                           />
                         </td>
-                        <td className="px-6 py-4 border-b">
+                        <td className="px-6 py-4 font-medium text-gray-900">
                           {student.firstName} {student.middleName}{" "}
                           {student.lastName}
                         </td>
-                        <td className="px-6 py-4 border-b">
+                        <td className="px-6 py-4 text-gray-600">
                           {student.enrollmentNo}
                         </td>
-                        <td className="px-6 py-4 border-b">
+                        <td className="px-6 py-4 text-gray-600">
                           {student.semester}
                         </td>
-                        <td className="px-6 py-4 border-b">
+                        <td className="px-6 py-4 text-gray-600">
                           {student.branchId?.name}
                         </td>
-                        <td className="px-6 py-4 border-b">{student.email}</td>
-                        <td className="px-6 py-4 border-b text-center">
+                        <td className="px-6 py-4 text-gray-600">{student.email}</td>
+                        <td className="px-6 py-4 text-center">
                           <div className="flex justify-center gap-2">
                             <CustomButton
                               variant="secondary"

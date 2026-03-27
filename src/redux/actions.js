@@ -1,4 +1,5 @@
-import { USER_DATA, USER_TOKEN } from "./action";
+export const USER_TOKEN = "USER_TOKEN";
+export const USER_DATA = "USER_DATA";
 
 export const setUserData = (data) => ({
   type: USER_DATA,

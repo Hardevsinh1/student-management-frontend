@@ -19,6 +19,41 @@ const AddMarks = () => {
   const [marksData, setMarksData] = useState({});
   const [consent, setConsent] = useState(false);
   const [showSearch, setShowSearch] = useState(true);
+  const [activeTab, setActiveTab] = useState("manual");
+  const [excelFile, setExcelFile] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
+
+  const handleExcelUpload = async () => {
+    if (!excelFile) {
+      toast.error("Please select an Excel file first");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", excelFile);
+    
+    setDataLoading(true);
+    toast.loading("Uploading Excel file...");
+    setUploadResult(null);
+    try {
+      const response = await axiosWrapper.post("/marks/upload-excel", formData, {
+        headers: { 
+          Authorization: `Bearer ${userToken}`,
+          "Content-Type": "multipart/form-data" 
+        },
+      });
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setUploadResult(response.data.data);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+       toast.error(error.response?.data?.message || "Error uploading excel file");
+    } finally {
+      setDataLoading(false);
+      toast.dismiss();
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -64,7 +99,7 @@ const AddMarks = () => {
     try {
       toast.loading("Loading subjects...");
       const response = await axiosWrapper.get(
-        `/subject?branch=${selectedBranch?._id}`,
+        `/subject?branch=${selectedBranch?._id}&semester=${selectedSemester}`,
         {
           headers: {
             Authorization: `Bearer ${userToken}`,
@@ -262,24 +297,85 @@ const AddMarks = () => {
   }, [userToken]);
 
   useEffect(() => {
-    if (selectedBranch) {
+    if (selectedBranch && selectedSemester) {
       fetchSubjects();
-    }
-  }, [selectedBranch]);
-
-  useEffect(() => {
-    if (selectedSemester) {
       fetchExams();
     }
-  }, [selectedSemester]);
+  }, [selectedBranch, selectedSemester]);
 
   return (
-    <div className="w-full mx-auto mt-10 flex justify-center items-start flex-col mb-10">
-      <div className="flex justify-between items-center w-full">
+    <div className="w-full mx-auto mt-10 flex justify-center items-start flex-col mb-10 px-4 md:px-8">
+      <div className="flex flex-col items-start w-full mb-6">
         <Heading title="Add Marks" />
+        <div className="flex bg-gray-100/80 rounded-lg p-1.5 mt-6 ml-1 md:ml-3 shadow-sm border border-gray-200/60">
+          <button
+             onClick={() => setActiveTab("manual")}
+             className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'manual' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
+          >
+            Manual Entry
+          </button>
+          <button
+             onClick={() => setActiveTab("excel")}
+             className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'excel' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
+          >
+            Excel Upload
+          </button>
+        </div>
       </div>
 
-      {showSearch && (
+      {activeTab === "excel" && (
+        <div className="w-full bg-white rounded-lg p-6 my-8 shadow-sm border border-gray-100">
+          <div className="flex flex-col items-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+             <input type="file" accept=".xlsx, .xls" onChange={(e) => setExcelFile(e.target.files[0])} className="mb-4" />
+             <p className="text-sm text-gray-500 mb-6 text-center max-w-md">Format must exactly include headers: <strong>enrollmentNo | subjectCode | marksObtained | semester | examName</strong>. Extension must be .xlsx.</p>
+             <CustomButton onClick={handleExcelUpload} disabled={!excelFile || dataLoading}>
+               {dataLoading ? "Uploading..." : "Upload Excel"}
+             </CustomButton>
+          </div>
+          
+          {uploadResult && (
+             <div className="mt-6 p-4 rounded-lg border bg-gray-50">
+               <h3 className="font-medium text-lg mb-2">Upload Results</h3>
+               <div className="grid grid-cols-2 gap-4 mb-4">
+                 <div className="bg-white p-3 border rounded shadow-sm text-center">
+                    <p className="text-sm text-gray-500">Total Rows Processed</p>
+                    <p className="text-2xl font-bold">{uploadResult.totalRows}</p>
+                 </div>
+                 <div className="bg-white p-3 border rounded shadow-sm text-center">
+                    <p className="text-sm text-gray-500">Successfully Inserted</p>
+                    <p className="text-2xl font-bold text-green-600">{uploadResult.insertedCount}</p>
+                 </div>
+               </div>
+               
+               {uploadResult.failedRows && uploadResult.failedRows.length > 0 && (
+                 <div className="mt-4">
+                    <p className="font-medium text-red-600 mb-2">Failed Rows ({uploadResult.failedRows.length}):</p>
+                    <div className="max-h-60 overflow-y-auto border rounded bg-white">
+                      <table className="min-w-full text-sm bg-white rounded-lg overflow-hidden border border-gray-100">
+                        <thead className="bg-[#fdf2f3] text-[#A11E2E]">
+                           <tr>
+                              <th className="px-4 py-3 text-left font-semibold w-20">Row</th>
+                              <th className="px-4 py-3 text-left font-semibold">Reason</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                           {uploadResult.failedRows.map((fail, i) => (
+                              <tr key={i}>
+                                <td className="px-4 py-2 font-medium">{fail.row}</td>
+                                <td className="px-4 py-2 text-red-600">{fail.reason}</td>
+                              </tr>
+                           ))}
+                        </tbody>
+                      </table>
+                    </div>
+                 </div>
+               )}
+             </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "manual" && showSearch && (
         <div className="w-full bg-white rounded-lg p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-[90%] mx-auto">
             <div>
@@ -290,7 +386,7 @@ const AddMarks = () => {
                 name="semester"
                 value={selectedSemester || ""}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
               >
                 <option value="">Select Semester</option>
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
@@ -309,7 +405,7 @@ const AddMarks = () => {
                 name="branch"
                 value={selectedBranch?._id || ""}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
               >
                 <option value="">Select Branch</option>
                 {branches?.map((branch) => (
@@ -483,7 +579,7 @@ const AddMarks = () => {
                   type="number"
                   min={0}
                   max={selectedExam?.totalMarks || 100}
-                  className="px-4 py-2 border rounded-md focus:outline-none bg-gray-50 border-gray-200 focus:ring-2 focus:ring-blue-500 w-full m-2"
+                  className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none bg-gray-50 focus:ring-2 focus:ring-[#A11E2E] w-full m-2 transition-all"
                   value={marksData[student._id] || ""}
                   placeholder="Enter Marks"
                   onChange={(e) =>
@@ -504,7 +600,7 @@ const AddMarks = () => {
                 id="consent"
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-[#A11E2E] border-gray-300 rounded focus:ring-[#A11E2E] transition-all"
               />
               <label htmlFor="consent" className="text-sm text-gray-700">
                 I confirm that all marks entered are correct and verified
@@ -522,6 +618,7 @@ const AddMarks = () => {
           </div>
         </div>
       )}
+      {/* End Manual Entry Tab rendering condition */}
     </div>
   );
 };

@@ -8,6 +8,7 @@ const ViewMarks = () => {
   const userData = useSelector((state) => state.userData);
   const [dataLoading, setDataLoading] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState(userData?.semester || 1);
+  const [selectedExamType, setSelectedExamType] = useState("all");
   const [marks, setMarks] = useState([]);
   const userToken = localStorage.getItem("userToken");
 
@@ -42,64 +43,92 @@ const ViewMarks = () => {
     fetchMarks(semester);
   };
 
-  const midTermMarks = marks.filter((mark) => mark.examId.examType === "mid");
-  const endTermMarks = marks.filter((mark) => mark.examId.examType === "end");
-
-  const renderMarks = (marksArray) =>
-    marksArray.length > 0 ? (
-      <div className="space-y-4">
-        {marksArray.map((mark) => (
-          <div
-            key={mark._id || `${mark.subjectId._id}-${mark.examId._id}`}
-            className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium text-gray-800">{mark.subjectId.name}</p>
-                <p className="text-sm text-gray-500">{mark.examId.name}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-semibold text-blue-600">{mark.marksObtained}</p>
-                <p className="text-sm text-gray-500">out of {mark.examId.totalMarks}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p className="text-gray-500">No marks available</p>
-    );
+  const filteredMarks = marks.filter((mark) => {
+    if (selectedExamType === "all") return true;
+    return mark.examId?.examType === selectedExamType;
+  });
 
   return (
-    <div className="w-full mx-auto mt-10 flex flex-col items-center mb-10">
-      <div className="flex justify-between items-center w-full mb-6">
-        <Heading title="View Marks" />
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">Semester:</label>
-          <select
-            value={selectedSemester || ""}
-            onChange={handleSemesterChange}
-            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-              <option key={sem} value={sem}>
-                Semester {sem}
-              </option>
-            ))}
-          </select>
+    <div className="w-full mx-auto mt-10 flex flex-col items-center mb-10 px-4">
+      <div className="flex justify-between items-center w-full max-w-6xl mb-6">
+        <Heading title="Your Marks" />
+        
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Exam Type:</label>
+            <select
+              value={selectedExamType}
+              onChange={(e) => setSelectedExamType(e.target.value)}
+              className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+            >
+              <option value="all">All Exams</option>
+              <option value="mid">Mid Term</option>
+              <option value="end">End Term</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Semester:</label>
+            <select
+              value={selectedSemester || ""}
+              onChange={handleSemesterChange}
+              className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#A11E2E]"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                <option key={sem} value={sem}>
+                  Semester {sem}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Mid Term Marks</h2>
-          {dataLoading ? <p className="text-gray-500">Loading...</p> : renderMarks(midTermMarks)}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">End Term Marks</h2>
-          {dataLoading ? <p className="text-gray-500">Loading...</p> : renderMarks(endTermMarks)}
-        </div>
+      <div className="w-full max-w-6xl bg-white rounded-lg shadow-md overflow-hidden">
+        {dataLoading ? (
+          <div className="p-8 text-center text-gray-500">Loading your marks...</div>
+        ) : filteredMarks.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left border-collapse rounded-xl overflow-hidden shadow-sm border border-gray-100">
+              <thead className="bg-[#fdf2f3] text-[#A11E2E] uppercase text-xs">
+                <tr>
+                  <th className="py-4 px-6 border-b border-gray-100 font-bold">Subject</th>
+                  <th className="py-4 px-6 border-b border-gray-100 font-bold text-center">Marks</th>
+                  <th className="py-4 px-6 border-b border-gray-100 font-bold">Semester</th>
+                  <th className="py-4 px-6 border-b border-gray-100 font-bold">Exam Type</th>
+                  <th className="py-4 px-6 border-b border-gray-100 font-bold">Exam Name</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800">
+                {filteredMarks.map((mark) => (
+                  <tr key={mark._id || `${mark.subjectId?._id}-${mark.examId?._id}`} className="hover:bg-[#fef9f9] border-b border-gray-50 last:border-0 transition-all duration-200">
+                    <td className="py-4 px-6 font-semibold text-gray-900">{mark.subjectId?.name || "N/A"}</td>
+                    <td className="py-4 px-6 text-center">
+                      <span className="text-xl font-bold text-[#A11E2E] bg-[#fdf2f3] px-3 py-1 rounded-lg">
+                        {mark.marksObtained}
+                      </span>
+                      <span className="text-xs text-gray-500 block mt-1">
+                        out of {mark.examId?.totalMarks || "-"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-gray-700 font-medium">Semester {mark.semester}</td>
+                    <td className="py-4 px-6 capitalize">
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-bold ring-1 transition-all duration-200 ${mark.examId?.examType === 'mid' ? 'bg-orange-50 text-orange-700 ring-orange-200' : 'bg-green-50 text-green-700 ring-green-200'}`}>
+                         {mark.examId?.examType} Term
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-600">{mark.examId?.name || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-12 text-center text-gray-500 flex flex-col items-center">
+             <div className="text-4xl mb-4">📊</div>
+             <p className="text-lg">No marks available for this selection.</p>
+          </div>
+        )}
       </div>
     </div>
   );

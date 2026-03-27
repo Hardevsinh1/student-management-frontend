@@ -136,8 +136,6 @@ const Login = () => {
       dispatch(setUserToken(token));
       navigate(`/${selected.toLowerCase()}`);
     } catch (error) {
-      toast.dismiss();
-      console.error(error);
       toast.error(error.response?.data?.message || "Login failed");
     }
   };

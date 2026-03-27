@@ -53,7 +53,11 @@ const Timetable = () => {
           <p
             className="flex items-center text-gray-700 text-lg font-medium cursor-pointer hover:text-[#A11E2E] hover:scale-105 transition-transform duration-200"
             onClick={() =>
-              window.open(process.env.REACT_APP_MEDIA_LINK + "/" + timetable)
+              window.open(
+                timetable?.startsWith("http")
+                  ? timetable
+                  : process.env.REACT_APP_MEDIA_LINK + "/" + timetable
+              )
             }
           >
             Download
@@ -69,7 +73,11 @@ const Timetable = () => {
       {!dataLoading && timetable && (
         <img
           className="mt-6 rounded-lg shadow-sm w-full md:w-4/5 mx-auto"
-          src={process.env.REACT_APP_MEDIA_LINK + "/" + timetable}
+          src={
+            timetable?.startsWith("http")
+              ? timetable
+              : process.env.REACT_APP_MEDIA_LINK + "/" + timetable
+          }
           alt="timetable"
         />
       )}

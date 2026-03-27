@@ -1,4 +1,4 @@
-import { USER_DATA, USER_TOKEN } from "./action";
+import { USER_DATA, USER_TOKEN } from "./actions";
 
 let initialState = {
   userData: {},

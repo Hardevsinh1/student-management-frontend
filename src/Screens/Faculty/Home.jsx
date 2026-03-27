@@ -49,10 +49,10 @@ const Home = () => {
 
   const getMenuItemClass = (menuId) => {
     const isSelected = selectedMenu.toLowerCase() === menuId.toLowerCase();
-    return `text-center px-6 py-3 cursor-pointer font-medium text-sm w-full rounded-md ${
+    return `text-center px-6 py-3 cursor-pointer font-medium text-sm w-full rounded-md transition-all duration-300 ease-in-out ${
       isSelected
-        ? "bg-blue-500 text-white"
-        : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+        ? "bg-[#A11E2E] text-white shadow-md transform -translate-y-0.5"
+        : "bg-[#fdf2f3] text-[#A11E2E] hover:bg-[#A11E2E] hover:text-white hover:-translate-y-0.5"
     }`;
   };
 
@@ -76,8 +76,8 @@ const Home = () => {
   return (
     <>
       <Navbar />
-      <div className="max-w-7xl mx-auto">
-        <ul className="flex justify-evenly items-center gap-10 w-full mx-auto my-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <ul className="flex justify-evenly items-center gap-10 w-full mx-auto my-8 overflow-x-auto pb-4 custom-scrollbar">
           {MENU_ITEMS.map((item) => (
             <li
               key={item.id}
@@ -89,7 +89,9 @@ const Home = () => {
           ))}
         </ul>
 
-        {renderContent()}
+        <div className="mt-8">
+          {renderContent()}
+        </div>
       </div>
       <Toaster position="bottom-center" />
     </>

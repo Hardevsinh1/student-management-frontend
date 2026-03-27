@@ -187,7 +187,7 @@ const Branch = () => {
                   id="name"
                   value={data.name}
                   onChange={(e) => setData({ ...data, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 />
               </div>
 
@@ -205,7 +205,7 @@ const Branch = () => {
                   onChange={(e) =>
                     setData({ ...data, branchId: e.target.value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
                 />
               </div>
 
@@ -227,9 +227,9 @@ const Branch = () => {
 
       {!dataLoading && (
         <div className="mt-8 w-full">
-          <table className="text-sm min-w-full bg-white">
+          <table className="min-w-full text-sm bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
             <thead>
-              <tr className="bg-blue-500 text-white">
+              <tr className="bg-[#fdf2f3] text-[#A11E2E]">
                 <th className="py-4 px-6 text-left font-semibold">
                   Branch Name
                 </th>
@@ -243,7 +243,7 @@ const Branch = () => {
             <tbody>
               {branch && branch.length > 0 ? (
                 branch.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-blue-50">
+                  <tr key={index} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
                     <td className="py-4 px-6">{item.name}</td>
                     <td className="py-4 px-6">{item.branchId}</td>
                     <td className="py-4 px-6">

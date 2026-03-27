@@ -12,6 +12,7 @@ import { setUserData } from "../../redux/actions";
 import axiosWrapper from "../../utils/AxiosWrapper";
 import Profile from "./Profile";
 import Exam from "../Exam";
+import UploadStudents from "./UploadStudents";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const MENU_ITEMS = [
@@ -23,6 +24,7 @@ const MENU_ITEMS = [
   { id: "exam", label: "Exam", component: Exam },
   { id: "subjects", label: "Subjects", component: Subjects },
   { id: "admin", label: "Admin", component: Admin },
+  { id: "upload-students", label: "Bulk Upload", component: UploadStudents },
 ];
 
 const Home = () => {
@@ -80,8 +82,8 @@ const Home = () => {
       transition-all duration-300 ease-in-out
       ${
         isSelected
-          ? "bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg transform -translate-y-1"
-          : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          ? "bg-[#A11E2E] text-white shadow-md transform -translate-y-0.5"
+          : "bg-[#fdf2f3] text-[#A11E2E] hover:bg-[#A11E2E] hover:text-white hover:-translate-y-0.5"
       }
     `;
   };
@@ -112,8 +114,8 @@ const Home = () => {
   return (
     <>
       <Navbar />
-      <div className="max-w-7xl mx-auto">
-        <ul className="flex justify-evenly items-center gap-10 w-full mx-auto my-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <ul className="flex justify-evenly items-center gap-10 w-full mx-auto my-8 overflow-x-auto pb-4 custom-scrollbar">
           {MENU_ITEMS.map((item) => (
             <li
               key={item.id}
@@ -125,7 +127,9 @@ const Home = () => {
           ))}
         </ul>
 
-        {renderContent()}
+        <div className="mt-8">
+          {renderContent()}
+        </div>
       </div>
       <Toaster position="bottom-center" />
     </>

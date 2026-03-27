@@ -266,9 +266,9 @@ const Timetable = () => {
       </div>
 
       <div className="mt-8 w-full">
-        <table className="text-sm min-w-full bg-white">
+        <table className="min-w-full text-sm bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
           <thead>
-            <tr className="bg-blue-500 text-white">
+            <tr className="bg-[#fdf2f3] text-[#A11E2E]">
               <th className="py-4 px-6 text-left font-semibold">View</th>
               <th className="py-4 px-6 text-left font-semibold">Branch</th>
               <th className="py-4 px-6 text-left font-semibold">Semester</th>
@@ -278,11 +278,15 @@ const Timetable = () => {
           </thead>
           <tbody>
             {timetables.map((item, index) => (
-              <tr key={index} className="border-b hover:bg-blue-50">
+              <tr key={index} className="border-b border-gray-50 hover:bg-[#fef9f9] transition-colors">
                 <td className="py-4 px-6">
                   <a
                     className="text-xl"
-                    href={process.env.REACT_APP_MEDIA_LINK + "/" + item.link}
+                    href={
+                      item.link?.startsWith("http")
+                        ? item.link
+                        : process.env.REACT_APP_MEDIA_LINK + "/" + item.link
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                   >
