@@ -72,20 +72,24 @@ const StudentFinder = () => {
         }
       );
 
-      toast.dismiss();
       if (response.data.success) {
-        if (response.data.data.length === 0) {
-          toast.error("No students found!");
-          setStudents([]);
-        } else {
+        setStudents(response.data.data || []);
+        if (response.data.data.length > 0) {
           toast.success("Students found!");
-          setStudents(response.data.data);
         }
       } else {
         toast.error(response.data.message);
       }
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setStudents([]);
+      } else {
+        toast.error(error.response?.data?.message || "Error searching students");
+        console.error(error);
+      }
     } finally {
       setDataLoading(false);
+      toast.dismiss();
     }
   };
 
@@ -193,7 +197,7 @@ const StudentFinder = () => {
         )}
 
         {hasSearched && students.length === 0 && (
-          <NoData title="No students found" />
+          <NoData title="No students found for selected branch and semester" />
         )}
 
         {students.length > 0 && (

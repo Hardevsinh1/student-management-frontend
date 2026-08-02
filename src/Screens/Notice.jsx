@@ -9,6 +9,7 @@ import axiosWrapper from "../utils/AxiosWrapper";
 import CustomButton from "../components/CustomButton";
 import DeleteConfirm from "../components/DeleteConfirm";
 import Loading from "../components/Loading";
+import { useSelector } from "react-redux";
 
 const Notice = () => {
   const router = useLocation();
@@ -26,7 +27,13 @@ const Notice = () => {
     description: "",
     type: "student",
     link: "",
+    branch: "",
+    semester: "",
   });
+
+  const [branches, setBranches] = useState([]);
+  const userData = useSelector((state) => state.userData);
+  const userRole = userData?.role || (router.pathname.split("/")[1]); // Fallback check
 
   useEffect(() => {
     if (!token) {
@@ -38,23 +45,24 @@ const Notice = () => {
   const getNotices = async () => {
     try {
       setDataLoading(true);
-      const response = await axiosWrapper.get("/notice", {
+      let apiEndpoint = "/notice"; // Default for Admin
+
+      if (router.pathname.includes("/student")) {
+        apiEndpoint = "/student/notices";
+      } else if (router.pathname.includes("/faculty")) {
+        apiEndpoint = "/faculty/notices";
+      }
+
+      console.log(`Fetching notices from: ${apiEndpoint} for role: ${userRole}`);
+
+      const response = await axiosWrapper.get(apiEndpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
       if (response.data.success) {
-        let fetchedNotices = response.data.data;
-        if (router.pathname === "/student") {
-          fetchedNotices = fetchedNotices.filter(
-            (n) => n.type === "student" || n.type === "both"
-          );
-        } else if (router.pathname === "/faculty") {
-          fetchedNotices = fetchedNotices.filter(
-            (n) => n.type === "faculty" || n.type === "both"
-          );
-        }
-        setNotices(fetchedNotices);
+        setNotices(response.data.data || []);
       } else {
         toast.error(response.data.message);
       }
@@ -62,6 +70,7 @@ const Notice = () => {
       if (error.response?.status === 404) {
         setNotices([]);
       } else {
+        console.error("Notice fetch error:", error);
         toast.error(error.response?.data?.message || "Failed to load notices");
       }
     } finally {
@@ -71,6 +80,19 @@ const Notice = () => {
 
   useEffect(() => {
     getNotices();
+    if (router.pathname === "/faculty" || router.pathname === "/admin") {
+      const fetchBranches = async () => {
+        try {
+          const res = await axiosWrapper.get("/branch", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.data.success) setBranches(res.data.data);
+        } catch (err) {
+          console.error("Failed to load branches", err);
+        }
+      };
+      fetchBranches();
+    }
   }, [router.pathname]);
 
   const openAddModal = () => {
@@ -80,6 +102,8 @@ const Notice = () => {
       description: "",
       type: "student",
       link: "",
+      branch: "",
+      semester: "",
     });
     setShowAddModal(true);
   };
@@ -91,6 +115,8 @@ const Notice = () => {
       description: notice.description || "",
       type: notice.type || "student",
       link: notice.link || "",
+      branch: notice.branch?._id || notice.branch || "",
+      semester: notice.semester || "",
     });
     setShowAddModal(true);
   };
@@ -107,6 +133,12 @@ const Notice = () => {
 
     try {
       toast.loading(editingNotice ? "Updating Notice" : "Adding Notice");
+
+      if (userRole === "faculty" && (!formData.branch || !formData.semester)) {
+        toast.dismiss();
+        toast.error("Please select branch and semester for targeted notice");
+        return;
+      }
 
       const response = await axiosWrapper[editingNotice ? "put" : "post"](
         `/notice${editingNotice ? `/${editingNotice._id}` : ""}`,
@@ -188,9 +220,8 @@ const Notice = () => {
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3
-                        className={`text-lg font-semibold line-clamp-2 group flex items-start ${
-                          notice.link ? "cursor-pointer hover:text-[#A11E2E]" : ""
-                        }`}
+                        className={`text-lg font-semibold line-clamp-2 group flex items-start ${notice.link ? "cursor-pointer hover:text-[#A11E2E]" : ""
+                          }`}
                         onClick={() => notice.link && window.open(notice.link)}
                       >
                         {notice.title}
@@ -198,8 +229,7 @@ const Notice = () => {
                           <IoMdLink className="ml-2 flex-shrink-0 text-xl opacity-70 group-hover:opacity-100 group-hover:text-[#A11E2E]" />
                         )}
                       </h3>
-                      {(router.pathname === "/faculty" ||
-                        router.pathname === "/admin") && (
+                      {(userRole === "admin" || (userRole === "faculty" && notice.createdBy === userData?._id)) && (
                         <div className="flex gap-2 ml-2 flex-shrink-0">
                           <CustomButton
                             onClick={() => {
@@ -237,11 +267,23 @@ const Notice = () => {
                           year: "numeric",
                         })}
                       </div>
-                      {notice.type !== "both" && (
-                        <span className="bg-[#FDE2E2] text-[#A11E2E] px-3 py-1 rounded-full font-medium">
-                          {notice.type === "student" ? "Student" : "Faculty"}
-                        </span>
-                      )}
+                      <div className="flex gap-2">
+                        {notice.createdByRole === "faculty" && (
+                          <span className="bg-[#E2FDE2] text-[#1E7E1E] px-3 py-1 rounded-full font-medium whitespace-nowrap">
+                            Semester {notice.semester}
+                          </span>
+                        )}
+                        {notice.createdByRole === "admin" && (
+                          <span className="bg-[#E2E2FD] text-[#1E1E7E] px-3 py-1 rounded-full font-medium">
+                            General
+                          </span>
+                        )}
+                        {notice.type !== "both" && (
+                          <span className="bg-[#FDE2E2] text-[#A11E2E] px-3 py-1 rounded-full font-medium">
+                            {notice.type === "student" ? "Student" : "Faculty"}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -326,10 +368,53 @@ const Notice = () => {
                 >
                   <option value="">Select Type</option>
                   <option value="student">Student</option>
-                  <option value="faculty">Faculty</option>
-                  <option value="both">Both</option>
+                  {userRole !== "faculty" && (
+                    <>
+                      <option value="faculty">Faculty</option>
+                      <option value="both">Both</option>
+                    </>
+                  )}
                 </select>
               </div>
+
+              {userRole === "faculty" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Branch
+                    </label>
+                    <select
+                      value={formData.branch}
+                      onChange={(e) =>
+                        setFormData({ ...formData, branch: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
+                    >
+                      <option value="">Select Branch</option>
+                      {branches.map(b => (
+                        <option key={b._id} value={b._id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Semester
+                    </label>
+                    <select
+                      value={formData.semester}
+                      onChange={(e) =>
+                        setFormData({ ...formData, semester: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A11E2E] transition-all"
+                    >
+                      <option value="">Select Semester</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+                        <option key={sem} value={sem}>Semester {sem}</option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
 
               <div className="flex justify-end gap-4 pt-4 border-t">
                 <CustomButton
@@ -342,7 +427,7 @@ const Notice = () => {
                   Cancel
                 </CustomButton>
                 <CustomButton type="submit" variant="primary">
-                  {editingNotice ? "Update" : "Add"}
+                  {editingNotice ? "Update Notice" : "Create Notice"}
                 </CustomButton>
               </div>
             </form>

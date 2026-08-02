@@ -30,15 +30,15 @@ const AddMarks = () => {
     }
     const formData = new FormData();
     formData.append("file", excelFile);
-    
+
     setDataLoading(true);
     toast.loading("Uploading Excel file...");
     setUploadResult(null);
     try {
       const response = await axiosWrapper.post("/marks/upload-excel", formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${userToken}`,
-          "Content-Type": "multipart/form-data" 
+          "Content-Type": "multipart/form-data"
         },
       });
       if (response.data.success) {
@@ -48,7 +48,7 @@ const AddMarks = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-       toast.error(error.response?.data?.message || "Error uploading excel file");
+      toast.error(error.response?.data?.message || "Error uploading excel file");
     } finally {
       setDataLoading(false);
       toast.dismiss();
@@ -163,13 +163,11 @@ const AddMarks = () => {
 
       toast.dismiss();
       if (response.data.success) {
+        setStudents(response.data.data || []);
         if (response.data.data.length === 0) {
-          toast.error("No students found!");
-          setStudents([]);
           setMasterMarksData([]);
         } else {
           toast.success("Students found!");
-          setStudents(response.data.data);
           const initialMarksData = {};
           response.data.data.forEach((student) => {
             initialMarksData[student._id] = student.obtainedMarks || "";
@@ -182,11 +180,15 @@ const AddMarks = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.dismiss();
-      toast.error(error.response?.data?.message || "Error searching students");
-      console.error("Search error:", error);
+      if (error.response?.status === 404) {
+        setStudents([]);
+      } else {
+        toast.error(error.response?.data?.message || "Error searching students");
+        console.error("Search error:", error);
+      }
     } finally {
       setDataLoading(false);
+      toast.dismiss();
     }
   };
 
@@ -220,9 +222,12 @@ const AddMarks = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.dismiss();
-      toast.error(error.response?.data?.message || "Error searching students");
-      console.error("Search error:", error);
+      if (error.response?.status === 404) {
+        setMasterMarksData([]);
+      } else {
+        toast.error(error.response?.data?.message || "Error searching students");
+        console.error("Search error:", error);
+      }
     } finally {
       setDataLoading(false);
     }
@@ -309,14 +314,14 @@ const AddMarks = () => {
         <Heading title="Add Marks" />
         <div className="flex bg-gray-100/80 rounded-lg p-1.5 mt-6 ml-1 md:ml-3 shadow-sm border border-gray-200/60">
           <button
-             onClick={() => setActiveTab("manual")}
-             className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'manual' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
+            onClick={() => setActiveTab("manual")}
+            className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'manual' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
           >
             Manual Entry
           </button>
           <button
-             onClick={() => setActiveTab("excel")}
-             className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'excel' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
+            onClick={() => setActiveTab("excel")}
+            className={`px-6 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${activeTab === 'excel' ? 'bg-white shadow text-[#A11E2E]' : 'text-gray-500 hover:text-gray-800'}`}
           >
             Excel Upload
           </button>
@@ -326,51 +331,51 @@ const AddMarks = () => {
       {activeTab === "excel" && (
         <div className="w-full bg-white rounded-lg p-6 my-8 shadow-sm border border-gray-100">
           <div className="flex flex-col items-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-             <input type="file" accept=".xlsx, .xls" onChange={(e) => setExcelFile(e.target.files[0])} className="mb-4" />
-             <p className="text-sm text-gray-500 mb-6 text-center max-w-md">Format must exactly include headers: <strong>enrollmentNo | subjectCode | marksObtained | semester | examName</strong>. Extension must be .xlsx.</p>
-             <CustomButton onClick={handleExcelUpload} disabled={!excelFile || dataLoading}>
-               {dataLoading ? "Uploading..." : "Upload Excel"}
-             </CustomButton>
+            <input type="file" accept=".xlsx, .xls" onChange={(e) => setExcelFile(e.target.files[0])} className="mb-4" />
+            <p className="text-sm text-gray-500 mb-6 text-center max-w-md">Format must exactly include headers: <strong>enrollmentNo | subjectCode | marksObtained | semester | examName</strong>. Extension must be .xlsx.</p>
+            <CustomButton onClick={handleExcelUpload} disabled={!excelFile || dataLoading}>
+              {dataLoading ? "Uploading..." : "Upload Excel"}
+            </CustomButton>
           </div>
-          
+
           {uploadResult && (
-             <div className="mt-6 p-4 rounded-lg border bg-gray-50">
-               <h3 className="font-medium text-lg mb-2">Upload Results</h3>
-               <div className="grid grid-cols-2 gap-4 mb-4">
-                 <div className="bg-white p-3 border rounded shadow-sm text-center">
-                    <p className="text-sm text-gray-500">Total Rows Processed</p>
-                    <p className="text-2xl font-bold">{uploadResult.totalRows}</p>
-                 </div>
-                 <div className="bg-white p-3 border rounded shadow-sm text-center">
-                    <p className="text-sm text-gray-500">Successfully Inserted</p>
-                    <p className="text-2xl font-bold text-green-600">{uploadResult.insertedCount}</p>
-                 </div>
-               </div>
-               
-               {uploadResult.failedRows && uploadResult.failedRows.length > 0 && (
-                 <div className="mt-4">
-                    <p className="font-medium text-red-600 mb-2">Failed Rows ({uploadResult.failedRows.length}):</p>
-                    <div className="max-h-60 overflow-y-auto border rounded bg-white">
-                      <table className="min-w-full text-sm bg-white rounded-lg overflow-hidden border border-gray-100">
-                        <thead className="bg-[#fdf2f3] text-[#A11E2E]">
-                           <tr>
-                              <th className="px-4 py-3 text-left font-semibold w-20">Row</th>
-                              <th className="px-4 py-3 text-left font-semibold">Reason</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                           {uploadResult.failedRows.map((fail, i) => (
-                              <tr key={i}>
-                                <td className="px-4 py-2 font-medium">{fail.row}</td>
-                                <td className="px-4 py-2 text-red-600">{fail.reason}</td>
-                              </tr>
-                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                 </div>
-               )}
-             </div>
+            <div className="mt-6 p-4 rounded-lg border bg-gray-50">
+              <h3 className="font-medium text-lg mb-2">Upload Results</h3>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-white p-3 border rounded shadow-sm text-center">
+                  <p className="text-sm text-gray-500">Total Rows Processed</p>
+                  <p className="text-2xl font-bold">{uploadResult.totalRows}</p>
+                </div>
+                <div className="bg-white p-3 border rounded shadow-sm text-center">
+                  <p className="text-sm text-gray-500">Successfully Inserted</p>
+                  <p className="text-2xl font-bold text-green-600">{uploadResult.insertedCount}</p>
+                </div>
+              </div>
+
+              {uploadResult.failedRows && uploadResult.failedRows.length > 0 && (
+                <div className="mt-4">
+                  <p className="font-medium text-red-600 mb-2">Failed Rows ({uploadResult.failedRows.length}):</p>
+                  <div className="max-h-60 overflow-y-auto border rounded bg-white">
+                    <table className="min-w-full text-sm bg-white rounded-lg overflow-hidden border border-gray-100">
+                      <thead className="bg-[#fdf2f3] text-[#A11E2E]">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold w-20">Row</th>
+                          <th className="px-4 py-3 text-left font-semibold">Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {uploadResult.failedRows.map((fail, i) => (
+                          <tr key={i}>
+                            <td className="px-4 py-2 font-medium">{fail.row}</td>
+                            <td className="px-4 py-2 text-red-600">{fail.reason}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -425,9 +430,8 @@ const AddMarks = () => {
                 value={selectedSubject?._id || ""}
                 onChange={handleInputChange}
                 disabled={!selectedBranch}
-                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  !selectedBranch ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!selectedBranch ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
               >
                 <option value="">Select Subject</option>
                 {subjects?.map((subject) => (
@@ -452,9 +456,8 @@ const AddMarks = () => {
                 value={selectedExam?._id || ""}
                 onChange={handleInputChange}
                 disabled={!selectedSubject}
-                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  !selectedSubject ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!selectedSubject ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
               >
                 <option value="">Select Exam</option>
                 {exams?.map((exam) => (
